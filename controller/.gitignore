@@ -16,6 +16,13 @@ dist-ssr
 .env
 .env.local
 
+# Firebase configuration files
+src/firebase.ts
+firebase.json
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
