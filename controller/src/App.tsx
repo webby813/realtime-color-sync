@@ -182,7 +182,6 @@ function App() {
             </Box>
           </Box>
         )}
-
         {bgType === "image" && (
           <Box>
             <Typography sx={{ ...style.highlight, mt: 2 }}>
