@@ -16,10 +16,11 @@ const style = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: "100vh",
     background: "black",
+    height: "100vh",
   },
   colorPanel: {
+    my: 4,
     px: 2,
     py: 2,
     width: "715px",
@@ -29,6 +30,7 @@ const style = {
     flexDirection: "column",
   },
   previewPanel: {
+    my: 4,
     width: "300px",
     height: "680px",
     background: "white",
@@ -59,21 +61,58 @@ const style = {
     mt: 1,
     width: "100%",
   },
+  colorPalette: {
+    mt: 2,
+    display: "flex",
+    gap: 2,
+    alignItems: "flex-start",
+    flexDirection: "column",
+  },
+  colorInput: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: "10px",
+  },
 };
+
+function ColorPicker({
+  label,
+  color,
+  onChange,
+}: {
+  label: string;
+  color: string;
+  onChange: (color: string) => void;
+}) {
+  return (
+    <Box sx={style.colorPalette}>
+      <Box sx={style.colorInput}>
+        <TextField
+          label={label}
+          value={color}
+          onChange={(e) => onChange(e.target.value)}
+          size="small"
+        />
+      </Box>
+      <HexColorPicker color={color} onChange={onChange} />
+    </Box>
+  );
+}
 
 function App() {
   const [bgType, setBgType] = React.useState<string | null>("color");
-
   const [checked, setChecked] = React.useState(false);
-
   const [color, setColor] = React.useState<string>("#ff0000");
+  const [midTierColor, setMidTierColor] = React.useState<string>("#00ff00");
+  const [endTierColor, setEndTierColor] = React.useState<string>("#0000ff");
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setChecked(event.target.checked);
   };
 
   const handleBgTypeChange = (
-    event: React.MouseEvent<HTMLElement>,
+    _event: React.MouseEvent<HTMLElement>,
     newBgType: string | null,
   ) => {
     setBgType(newBgType);
@@ -104,11 +143,13 @@ function App() {
             <ToggleButton value="image">Image</ToggleButton>
           </ToggleButtonGroup>
 
-          <FormControlLabel
-            control={<Checkbox checked={checked} onChange={handleChange} />}
-            label="Enable feature"
-            sx={{ ml: "auto" }}
-          />
+          {bgType === "gradient" && (
+            <FormControlLabel
+              control={<Checkbox checked={checked} onChange={handleChange} />}
+              label="Animation Effect"
+              sx={{ ml: "auto" }}
+            />
+          )}
         </Box>
 
         {bgType === "color" && (
@@ -116,28 +157,7 @@ function App() {
             <Typography sx={{ ...style.highlight, mt: 2 }}>
               Background Color
             </Typography>
-            <Box
-              sx={{ mt: 2, display: "flex", gap: 2, alignItems: "flex-start" }}
-            >
-              <HexColorPicker color={color} onChange={setColor} />
-              <Box>
-                <TextField
-                  label="Hex"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  size="small"
-                />
-                <Box
-                  sx={{
-                    mt: 1,
-                    width: 48,
-                    height: 48,
-                    bgcolor: color,
-                    borderRadius: 1,
-                  }}
-                />
-              </Box>
-            </Box>
+            <ColorPicker label="Hex" color={color} onChange={setColor} />
           </Box>
         )}
 
@@ -146,73 +166,19 @@ function App() {
             <Typography sx={{ ...style.highlight, mt: 2 }}>
               Background Color
             </Typography>
-            <Box
-              sx={{ mt: 2, display: "flex", gap: 2, alignItems: "flex-start" }}
-            >
-              <HexColorPicker color={color} onChange={setColor} />
-              <Box>
-                <TextField
-                  label="Hex"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  size="small"
-                />
-                <Box
-                  sx={{
-                    mt: 1,
-                    width: 48,
-                    height: 48,
-                    bgcolor: color,
-                    borderRadius: 1,
-                  }}
-                />
-              </Box>
-            </Box>
 
-            <Box
-              sx={{ mt: 2, display: "flex", gap: 2, alignItems: "flex-start" }}
-            >
-              <HexColorPicker color={color} onChange={setColor} />
-              <Box>
-                <TextField
-                  label="Hex"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  size="small"
-                />
-                <Box
-                  sx={{
-                    mt: 1,
-                    width: 48,
-                    height: 48,
-                    bgcolor: color,
-                    borderRadius: 1,
-                  }}
-                />
-              </Box>
-            </Box>
-
-            <Box
-              sx={{ mt: 2, display: "flex", gap: 2, alignItems: "flex-start" }}
-            >
-              <HexColorPicker color={color} onChange={setColor} />
-              <Box>
-                <TextField
-                  label="Hex"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  size="small"
-                />
-                <Box
-                  sx={{
-                    mt: 1,
-                    width: 48,
-                    height: 48,
-                    bgcolor: color,
-                    borderRadius: 1,
-                  }}
-                />
-              </Box>
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 4 }}>
+              <ColorPicker label="Hex" color={color} onChange={setColor} />
+              <ColorPicker
+                label="Hex"
+                color={midTierColor}
+                onChange={setMidTierColor}
+              />
+              <ColorPicker
+                label="Hex"
+                color={endTierColor}
+                onChange={setEndTierColor}
+              />
             </Box>
           </Box>
         )}
@@ -226,7 +192,26 @@ function App() {
         )}
       </Box>
 
-      <Box sx={style.previewPanel}></Box>
+      <Box
+        sx={{
+          ...style.previewPanel,
+          background:
+            bgType === "color"
+              ? color
+              : `linear-gradient(135deg, ${color} 0%, ${midTierColor} 50%, ${endTierColor} 100%)`,
+          ...(bgType === "gradient" && checked && {
+            backgroundSize: "400% 400%",
+            animation: "gradientWave 8s ease infinite",
+            "@keyframes gradientWave": {
+              "0%": { backgroundPosition: "0% 50%" },
+              "25%": { backgroundPosition: "100% 50%" },
+              "50%": { backgroundPosition: "100% 100%" },
+              "75%": { backgroundPosition: "0% 100%" },
+              "100%": { backgroundPosition: "0% 50%" },
+            },
+          }),
+        }}
+      ></Box>
     </Box>
   );
 }
