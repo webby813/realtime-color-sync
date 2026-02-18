@@ -1,5 +1,6 @@
 import React from "react";
 import "./firebase/firebase";
+import { readBgConfig, updateBgConfig, BgConfig, BgType } from "./functions/realtime_db";
 import {
   Box,
   Checkbox,
@@ -101,11 +102,41 @@ function ColorPicker({
 }
 
 function App() {
-  const [bgType, setBgType] = React.useState<string | null>("color");
+  const [bgType, setBgType] = React.useState<BgType>("color");
   const [checked, setChecked] = React.useState(false);
   const [color, setColor] = React.useState<string>("#ff0000");
   const [midTierColor, setMidTierColor] = React.useState<string>("#00ff00");
   const [endTierColor, setEndTierColor] = React.useState<string>("#0000ff");
+  const [image, setImage] = React.useState<string | null>(null);
+
+  const isLoaded = React.useRef(false);
+
+  const applyConfig = (config: BgConfig) => {
+    setBgType(config.bgType);
+    setChecked(config.animationEffect);
+    setColor(config.colors.color);
+    setMidTierColor(config.colors.midTier);
+    setEndTierColor(config.colors.endTier);
+    setImage(config.colors.image ?? null);
+  };
+
+  const buildConfig = (): BgConfig => ({
+    bgType,
+    colors: { color, midTier: midTierColor, endTier: endTierColor, image },
+    animationEffect: checked,
+  });
+
+  React.useEffect(() => {
+    readBgConfig().then((config) => {
+      if (config) applyConfig(config);
+      isLoaded.current = true;
+    });
+  }, []);
+
+  React.useEffect(() => {
+    if (!isLoaded.current) return;
+    updateBgConfig(buildConfig());
+  }, [bgType, checked, color, midTierColor, endTierColor, image]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setChecked(event.target.checked);
@@ -113,9 +144,9 @@ function App() {
 
   const handleBgTypeChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newBgType: string | null,
+    newBgType: BgType | null,
   ) => {
-    setBgType(newBgType);
+    if (newBgType) setBgType(newBgType);
   };
 
   return (
@@ -140,7 +171,7 @@ function App() {
           >
             <ToggleButton value="color">Color</ToggleButton>
             <ToggleButton value="gradient">Gradient</ToggleButton>
-            <ToggleButton value="image">Image</ToggleButton>
+            {/* <ToggleButton value="image">Image</ToggleButton> */}
           </ToggleButtonGroup>
 
           {bgType === "gradient" && (
@@ -182,13 +213,14 @@ function App() {
             </Box>
           </Box>
         )}
-        {bgType === "image" && (
+
+        {/* {bgType === "image" && (
           <Box>
             <Typography sx={{ ...style.highlight, mt: 2 }}>
               Image options will be here
             </Typography>
           </Box>
-        )}
+        )} */}
       </Box>
 
       <Box
