@@ -1,6 +1,7 @@
 import React from "react";
 import "./firebase/firebase";
 import { readBgConfig, updateBgConfig, BgConfig, BgType } from "./functions/realtime_db";
+import PaletteIcon from '@mui/icons-material/Palette';
 import {
   Box,
   Checkbox,
@@ -40,6 +41,56 @@ const style = {
     alignItems: "center",
     justifyContent: "center",
     marginLeft: "20px",
+    flexDirection: "column",
+    gap: 0,
+    overflow: "hidden",
+    position: "relative",
+  },
+  previewCard: {
+    mx: 2,
+    px: 3,
+    py: 4,
+    borderRadius: "20px",
+    background: "rgba(255,255,255,0.18)",
+    backdropFilter: "blur(16px)",
+    border: "1px solid rgba(255,255,255,0.3)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 1.5,
+  },
+  previewIcon: {
+    fontSize: "48px",
+    lineHeight: 1,
+  },
+  previewTitle: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: "22px",
+    textAlign: "center",
+  },
+  previewSubtitle: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: "14px",
+  },
+  previewHexPill: {
+    mt: 1,
+    px: 3,
+    py: 1.2,
+    borderRadius: "12px",
+    background: "rgba(0,0,0,0.25)",
+  },
+  previewHexText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: "18px",
+    letterSpacing: 1,
+  },
+  previewBottomLabel: {
+    pt: 4,
+    color: "rgba(255,255,255,0.7)",
+    fontSize: "14px",
+    fontStyle: "italic",
   },
   header: {
     fontSize: "24px",
@@ -228,10 +279,13 @@ function App() {
           ...style.previewPanel,
           background:
             bgType === "color"
-              ? color
+              ? `linear-gradient(135deg, ${color}, ${color}B3)`
               : `linear-gradient(135deg, ${color} 0%, ${midTierColor} 50%, ${endTierColor} 100%)`,
-          ...(bgType === "gradient" && checked && {
+          ...(bgType === "gradient" && {
             backgroundSize: "400% 400%",
+            backgroundPosition: "0% 50%",
+          }),
+          ...(bgType === "gradient" && checked && {
             animation: "gradientWave 8s ease infinite",
             "@keyframes gradientWave": {
               "0%": { backgroundPosition: "0% 50%" },
@@ -242,7 +296,35 @@ function App() {
             },
           }),
         }}
-      ></Box>
+      >
+        {/* Glassmorphism card */}
+        <Box sx={style.previewCard}>
+          {/* Palette icon */}
+          <Box sx={style.previewIcon}>
+            <PaletteIcon sx={{ fontSize: 48 , color: "white"}} />
+          </Box>
+
+          <Typography sx={style.previewTitle}>
+            Realtime Color Sync
+          </Typography>
+
+          <Typography sx={style.previewSubtitle}>
+            View
+          </Typography>
+
+          {/* Hex color pill */}
+          <Box sx={style.previewHexPill}>
+            <Typography sx={style.previewHexText}>
+              {color.toUpperCase()}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Bottom label */}
+        <Typography sx={style.previewBottomLabel}>
+          {bgType === "color" ? "Solid Color" : "Gradient"}
+        </Typography>
+      </Box>
     </Box>
   );
 }
