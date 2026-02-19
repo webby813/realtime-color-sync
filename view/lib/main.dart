@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'firebase_options.dart';
 import 'functions/realtime_db.dart';
 
@@ -49,9 +51,11 @@ class _Styles {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   runApp(const MyApp());
 }
 
@@ -79,8 +83,7 @@ class ColorSyncView extends StatefulWidget {
   State<ColorSyncView> createState() => _ColorSyncViewState();
 }
 
-class _ColorSyncViewState extends State<ColorSyncView>
-    with SingleTickerProviderStateMixin {
+class _ColorSyncViewState extends State<ColorSyncView> {
   Color _currentColor = const Color(0xFF3B82F6);
   BgType _bgType = BgType.color;
   Color _midTierColor = const Color(0xFF00FF00);
@@ -88,17 +91,10 @@ class _ColorSyncViewState extends State<ColorSyncView>
   bool _animationEffect = false;
 
   StreamSubscription? _configSub;
-  AnimationController? _animController;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 8),
-    )..repeat();
-
-    _animController!.addListener(() => setState(() {}));
 
     _configSub = listenBgConfig().listen((config) {
       if (config == null) return;
@@ -115,7 +111,6 @@ class _ColorSyncViewState extends State<ColorSyncView>
   @override
   void dispose() {
     _configSub?.cancel();
-    _animController?.dispose();
     super.dispose();
   }
 
@@ -136,22 +131,18 @@ class _ColorSyncViewState extends State<ColorSyncView>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        decoration: _buildDecoration(),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildCard(),
-              const SizedBox(height: 48),
-              Text(_statusText, style: _Styles.statusLabel),
-            ],
-          ),
-        ),
+    final content = Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildCard(),
+          const SizedBox(height: 48),
+          Text(_statusText, style: _Styles.statusLabel),
+        ],
       ),
     );
+
+    return Scaffold(body: _buildBackground(content));
   }
 
   Widget _buildCard() {
@@ -176,55 +167,66 @@ class _ColorSyncViewState extends State<ColorSyncView>
     );
   }
 
-  BoxDecoration _buildDecoration() {
+  Widget _buildBackground(Widget child) {
     if (_bgType == BgType.color) {
-      return BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_currentColor, _currentColor.withOpacity(0.7)],
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomCenter,
+            colors: [_currentColor, _currentColor.withOpacity(0.7)],
+          ),
         ),
+        child: child,
       );
     }
 
     if (!_animationEffect) {
-      return BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_currentColor, _midTierColor, _endTierColor],
-          stops: const [0.0, 0.5, 1.0],
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_currentColor, _midTierColor, _endTierColor],
+            stops: const [0.0, 0.5, 1.0],
+          ),
         ),
+        child: child,
       );
     }
 
-    final t = _animController?.value ?? 0;
-    final offset = _computeAnimOffset(t);
-
-    return BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment(-3.0 + offset.dx * 6.0, -3.0 + offset.dy * 6.0),
-        end: Alignment(-3.0 + offset.dx * 6.0 + 1.41, -3.0 + offset.dy * 6.0 + 1.41),
-        colors: [_currentColor, _midTierColor, _endTierColor],
-        stops: const [0.0, 0.5, 1.0],
-      ),
+    return Animate(
+      onPlay: (controller) => controller.repeat(),
+      effects: [
+        CustomEffect(
+          begin: 0,
+          end: 1,
+          duration: const Duration(seconds: 8),
+          curve: Curves.linear,
+          builder: (context, value, child) {
+            final offset = _computeAnimOffset(value as double);
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment(-3.0 + offset.dx * 6.0, -3.0 + offset.dy * 6.0),
+                  end: Alignment(-3.0 + offset.dx * 6.0 + 1.41, -3.0 + offset.dy * 6.0 + 1.41),
+                  colors: [_currentColor, _midTierColor, _endTierColor],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: child,
+            );
+          },
+        ),
+      ],
+      child: child,
     );
   }
 
   Offset _computeAnimOffset(double t) {
-    const keyframes = [
-      Offset(0.0, 0.5),
-      Offset(1.0, 0.5),
-      Offset(1.0, 1.0),
-      Offset(0.0, 1.0),
-      Offset(0.0, 0.5),
-    ];
-
-    final segment = t * 4;
-    final index = segment.floor().clamp(0, 3);
-    final localT = segment - index;
-    final eased = Curves.easeInOut.transform(localT);
-
-    return Offset.lerp(keyframes[index], keyframes[index + 1], eased)!;
+    final angle = t * 2 * math.pi;
+    return Offset(0.5 + 0.5 * math.cos(angle), 0.5 + 0.5 * math.sin(angle));
   }
 }

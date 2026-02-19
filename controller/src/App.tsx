@@ -14,6 +14,7 @@ import {
 import { HexColorPicker } from "react-colorful";
 
 const style = {
+  // --- Layout ---
   layout: {
     display: "flex",
     alignItems: "center",
@@ -21,6 +22,8 @@ const style = {
     background: "black",
     height: "100vh",
   },
+
+  // --- Color Panel ---
   colorPanel: {
     my: 4,
     px: 2,
@@ -30,67 +33,6 @@ const style = {
     borderRadius: "8px",
     display: "flex",
     flexDirection: "column",
-  },
-  previewPanel: {
-    my: 4,
-    width: "300px",
-    height: "680px",
-    background: "white",
-    borderRadius: "8px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: "20px",
-    flexDirection: "column",
-    gap: 0,
-    overflow: "hidden",
-    position: "relative",
-  },
-  previewCard: {
-    mx: 2,
-    px: 3,
-    py: 4,
-    borderRadius: "20px",
-    background: "rgba(255,255,255,0.18)",
-    backdropFilter: "blur(16px)",
-    border: "1px solid rgba(255,255,255,0.3)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 1.5,
-  },
-  previewIcon: {
-    fontSize: "48px",
-    lineHeight: 1,
-  },
-  previewTitle: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: "22px",
-    textAlign: "center",
-  },
-  previewSubtitle: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: "14px",
-  },
-  previewHexPill: {
-    mt: 1,
-    px: 3,
-    py: 1.2,
-    borderRadius: "12px",
-    background: "rgba(0,0,0,0.25)",
-  },
-  previewHexText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: "18px",
-    letterSpacing: 1,
-  },
-  previewBottomLabel: {
-    pt: 4,
-    color: "rgba(255,255,255,0.7)",
-    fontSize: "14px",
-    fontStyle: "italic",
   },
   header: {
     fontSize: "24px",
@@ -125,6 +67,70 @@ const style = {
     flexDirection: "row",
     alignItems: "center",
     gap: "10px",
+  },
+
+  // --- Preview Panel ---
+  previewPanel: {
+    my: 4,
+    width: "300px",
+    height: "680px",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: "20px",
+    flexDirection: "column",
+    gap: 0,
+    overflow: "hidden",
+    position: "relative",
+  },
+  previewCard: {
+    mx: 3,
+    px: 3,
+    py: 4,
+    borderRadius: "20px",
+    background: "rgba(255,255,255,0.2)",
+    backdropFilter: "blur(16px)",
+    border: "2px solid rgba(255,255,255,0.3)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 0,
+  },
+  previewIcon: {
+    fontSize: "64px",
+    lineHeight: 1,
+    mb: 3,
+  },
+  previewTitle: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: "28px",
+    textAlign: "center",
+    mb: 2,
+  },
+  previewSubtitle: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: "18px",
+    mb: 4,
+  },
+  previewHexPill: {
+    px: 3,
+    py: 1.5,
+    borderRadius: "12px",
+    background: "rgba(0,0,0,0.3)",
+  },
+  previewHexText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: "20px",
+    letterSpacing: 1,
+    fontFamily: "monospace",
+  },
+  previewBottomLabel: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: "14px",
+    fontStyle: "italic",
   },
 };
 
@@ -279,19 +285,28 @@ function App() {
           ...style.previewPanel,
           background:
             bgType === "color"
-              ? `linear-gradient(135deg, ${color}, ${color}B3)`
+              ? `linear-gradient(160deg, ${color}, ${color}B3)`
               : `linear-gradient(135deg, ${color} 0%, ${midTierColor} 50%, ${endTierColor} 100%)`,
-          ...(bgType === "gradient" && {
-            backgroundSize: "400% 400%",
-            backgroundPosition: "0% 50%",
-          }),
           ...(bgType === "gradient" && checked && {
-            animation: "gradientWave 8s ease infinite",
+            backgroundSize: "400% 400%",
+            animation: "gradientWave 8s linear infinite",
             "@keyframes gradientWave": {
-              "0%": { backgroundPosition: "0% 50%" },
-              "25%": { backgroundPosition: "100% 50%" },
-              "50%": { backgroundPosition: "100% 100%" },
-              "75%": { backgroundPosition: "0% 100%" },
+              "0%": {
+                backgroundPosition: "0% 50%",
+                animationTimingFunction: "ease-in-out",
+              },
+              "25%": {
+                backgroundPosition: "100% 50%",
+                animationTimingFunction: "ease-in-out",
+              },
+              "50%": {
+                backgroundPosition: "100% 100%",
+                animationTimingFunction: "ease-in-out",
+              },
+              "75%": {
+                backgroundPosition: "0% 100%",
+                animationTimingFunction: "ease-in-out",
+              },
               "100%": { backgroundPosition: "0% 50%" },
             },
           }),
@@ -301,7 +316,7 @@ function App() {
         <Box sx={style.previewCard}>
           {/* Palette icon */}
           <Box sx={style.previewIcon}>
-            <PaletteIcon sx={{ fontSize: 48 , color: "white"}} />
+            <PaletteIcon sx={{ fontSize: 64, color: "white" }} />
           </Box>
 
           <Typography sx={style.previewTitle}>
@@ -321,9 +336,22 @@ function App() {
         </Box>
 
         {/* Bottom label */}
-        <Typography sx={style.previewBottomLabel}>
+        <Typography sx={{ ...style.previewBottomLabel, mt: 2 }}>
           {bgType === "color" ? "Solid Color" : "Gradient"}
         </Typography>
+
+        {/* Bottom gradient overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "700px",
+            background: "linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.25))",
+            pointerEvents: "none",
+          }}
+        />
       </Box>
     </Box>
   );
